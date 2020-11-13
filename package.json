@@ -1,0 +1,28 @@
+{
+  "name": "ldapjs-promise-disconnectwhenidle",
+  "version": "1.0.0",
+  "description": "simple ldapjs wrapper returning promises and handling disconnectWhenIdle & reconnect",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UnivParis1/node-ldapjs-promise-disconnectWhenIdle.git"
+  },
+  "keywords": [
+    "ldapjs",
+    "promise",
+    "idle",
+    "reconnect"
+  ],
+  "author": "Pascal Rigaux <pascal.rigaux@univ-paris1.fr>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/UnivParis1/node-ldapjs-promise-disconnectWhenIdle/issues"
+  },
+  "homepage": "https://github.com/UnivParis1/node-ldapjs-promise-disconnectWhenIdle#readme",
+  "dependencies": {
+    "ldapjs": "^2.2.0"
+  }
+}

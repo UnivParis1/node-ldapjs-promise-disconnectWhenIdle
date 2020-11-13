@@ -1,0 +1,98 @@
+const ldapjs = require('ldapjs');
+
+
+let _conf
+/**
+ * Configure ldap connection
+ * @param {Object} conf - ldap connection parameters
+ * @param {string} conf.uri - ldap://xxx
+ * @param {string=} conf.dn - dc=foo,ou=bar,dc=univ,dc=fr
+ * @param {string=} conf.password - 
+ * @param {number=} conf.disconnectWhenIdle_duration - milliseconds
+ */
+function init(conf) {
+    _conf = conf
+}
+
+let _client, _clientP;
+function clientP() {
+    if (!_clientP) new_clientP();
+    return _clientP;
+}
+
+function destroy() {
+    if (_conf.verbose) console.log("destroying ldap connection");
+    _client.destroy();
+    _client = undefined;
+    _clientP = undefined;
+}
+
+function new_clientP() {
+    if (!_conf) throw "node-ldapjs-promise-disconnectWhenIdle: call init() first"
+    if (_conf.verbose) console.info("connecting to " + _conf.uri);
+    const c = ldapjs.createClient({ url: _conf.uri, reconnect: true, idleTimeout: _conf.disconnectWhenIdle_duration });
+    c.on('connectError', console.error);
+    c.on('error', console.error);
+    c.on('idle', destroy);
+
+    _client = c;
+    _clientP = new Promise((resolve, reject) => {
+        c.on('connect', () => {
+            if (_conf.verbose) console.log("connected to ldap server");
+            if (_conf.dn) {
+                c.bind(_conf.dn, _conf.password, err => {
+                    if (err) console.error(err);
+                    err ? reject(err) : resolve(c);
+                });
+            } else {
+                resolve(c);
+            }
+        });
+    });
+}
+
+/**
+ * LDAP search
+ * @param {string} base - LDAP branch to search
+ * @param {string} filter - search filter
+ * @param {string[]} attributes - attributes to return
+ * @param {ldapjs.SearchOptions} options - search options
+ * @returns {Promise<ldapjs.SearchEntry[]>} - entries
+ */
+function search(base, filter, attributes, options) {
+    if (attributes.length === 0) {
+        // workaround asking nothing and getting everything. Bug in ldapjs???
+        attributes = ['objectClass'];
+    }
+    let params = { filter, attributes, scope: "sub", ...options };
+    return new Promise((resolve, reject) => {
+        let l = [];
+        clientP().then(c => c.search(base, params, (err, res) => {
+            if (err) return reject(err);
+
+            res.on('searchEntry', entry => {
+                l.push(entry);
+            });
+            res.on('searchReference', referral => {
+                if (_conf.verbose) console.log('referral: ' + referral.uris.join());
+            });
+            res.on('error', err => {
+                if ((err || {}).name === 'SizeLimitExceededError') {
+                    // that's ok, return what we got:
+                    resolve(l);
+                } else {
+                    if (_conf.verbose) console.log("ldap error:" + err);
+                    reject(err);
+                }
+            });
+            res.on('end', result => {
+                if (result.status === 0)
+                    resolve(l);
+                else
+                    reject("unknown error");
+            });
+        }));
+    });
+}
+
+module.exports = { init, destroy, search }
