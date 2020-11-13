@@ -95,4 +95,22 @@ function search(base, filter, attributes, options) {
     });
 }
 
-module.exports = { init, destroy, search }
+/**
+ * ldapjs return a string if only one value, and an array if multiple values. Enforce first response
+ * @param {string|string[]} val 
+ * @returns {string}
+ */
+const oneAttr = (val) => (
+    Array.isArray(val) ? val[0] : val
+)
+
+/**
+ * ldapjs return a string if only one value, and an array if multiple values. Enforce array
+ * @param {string|string[]} vals 
+ * @returns {string[]}
+ */
+const manyAttrs = (vals) => (
+    Array.isArray(vals) ? vals : [vals]
+)
+
+module.exports = { init, destroy, search, oneAttr, manyAttrs }
