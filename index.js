@@ -9,6 +9,7 @@ let _conf
  * @param {string=} conf.dn - dc=foo,ou=bar,dc=univ,dc=fr
  * @param {string=} conf.password - 
  * @param {number=} conf.disconnectWhenIdle_duration - milliseconds
+ * @param {boolean=} conf.verbose - 
  */
 function init(conf) {
     _conf = conf
