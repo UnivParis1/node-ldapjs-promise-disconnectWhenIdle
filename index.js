@@ -124,7 +124,7 @@ const oneAttr = (val) => (
  * @returns {string[]}
  */
 const manyAttrs = (vals) => (
-    Array.isArray(vals) ? vals : [vals]
+    Array.isArray(vals) ? vals : vals === undefined ? [] : [vals]
 )
 
 module.exports = { init, destroy, search, searchRaw, oneAttr, manyAttrs }
