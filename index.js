@@ -30,6 +30,10 @@ function destroy() {
     _clientP = undefined;
 }
 
+function force_new_clientP() {
+    new_clientP()
+}
+
 function new_clientP() {
     if (!_conf) throw "node-ldapjs-promise-disconnectWhenIdle: call init() first"
     if (_conf.verbose) console.info("connecting to " + _conf.uri);
@@ -129,4 +133,4 @@ const manyAttrs = (vals) => (
     Array.isArray(vals) ? vals : vals === undefined ? [] : [vals]
 )
 
-module.exports = { init, destroy, search, searchRaw, oneAttr, manyAttrs }
+module.exports = { init, destroy, force_new_clientP, search, searchRaw, oneAttr, manyAttrs }
