@@ -71,6 +71,10 @@ function searchRaw(base, filter, attributes, options) {
         // workaround asking nothing and getting everything. Bug in ldapjs???
         attributes = ['objectClass'];
     }
+    if (filter === '(|)') {
+        // NB: not handled anymore by ldapjs since ldap-filter 0.3.x
+        return Promise.resolve([]);
+    }
     let params = { filter, attributes, scope: "sub", ...options };
     return new Promise((resolve, reject) => {
         let l = [];
