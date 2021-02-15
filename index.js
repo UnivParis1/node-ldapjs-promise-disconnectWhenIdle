@@ -22,8 +22,10 @@ function clientP() {
 }
 
 function destroy() {
-    if (_conf.verbose) console.log("destroying ldap connection");
-    _client.destroy();
+    if (_client) {
+        if (_conf.verbose) console.log("destroying ldap connection");
+        _client.destroy();
+    }
     _client = undefined;
     _clientP = undefined;
 }
