@@ -5,7 +5,7 @@ let _conf
 /**
  * Configure ldap connection
  * @param {Object} conf - ldap connection parameters
- * @param {string} conf.uri - ldap://xxx
+ * @param {string | string[]} conf.uri - ldap://xxx
  * @param {string=} conf.dn - dc=foo,ou=bar,dc=univ,dc=fr
  * @param {string=} conf.password - 
  * @param {number=} conf.disconnectWhenIdle_duration - milliseconds
