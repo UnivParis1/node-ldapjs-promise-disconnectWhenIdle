@@ -75,6 +75,11 @@ function searchRaw(base, filter, attributes, options) {
         // NB: not handled anymore by ldapjs since ldap-filter 0.3.x
         return Promise.resolve([]);
     }
+    try {
+        if (filter) filter = ldapjs.parseFilter(filter)
+    } catch (err) {
+        return Promise.reject("Error parsing LDAP filter: " + err)
+    }
     let params = { filter, attributes, scope: "sub", ...options };
     return new Promise((resolve, reject) => {
         let l = [];
