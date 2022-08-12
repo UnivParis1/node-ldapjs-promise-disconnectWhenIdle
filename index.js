@@ -1,4 +1,5 @@
 const ldapjs = require('ldapjs');
+const util = require('util')
 
 
 let _conf
@@ -123,6 +124,38 @@ const search = (base, filter, attributes, options) => (
     searchRaw(base, filter, attributes, options).then(l => l.map(e => e.object))
 )
 
+async function promisify_method(method) {
+    const c = await clientP()
+    return util.promisify(c[method]).bind(c)
+}
+
+/**
+ * LDAP add
+ * @param {string} dn the DN of the entry to add.
+ * @param {Object} entry an array of Attributes to be added or a JS object.
+ */
+ async function add(dn, entry) {
+    if (_conf.verbose) console.log("adding", dn)
+    return await (await promisify_method('add'))(dn, entry)
+}
+
+/**
+ * LDAP delete
+ * @param {string} dn the DN of the entry to del.
+ */
+ async function del(dn, entry) {
+    if (_conf.verbose) console.log("del", dn)
+    return await (await promisify_method('del'))(dn)
+}
+/**
+ * LDAP modify
+ * @param {string} dn the DN of the entry to modify.
+ * @param {ldapjs.Change | ldapjs.Change[]} change update to perform (can be [Change]).
+ */
+ async function modify(dn, change) {
+    if (_conf.verbose) console.log("modify", dn)
+    return await (await promisify_method('modify'))(dn, change)
+}
 
 /**
  * ldapjs return a string if only one value, and an array if multiple values. Enforce first response
@@ -142,4 +175,4 @@ const manyAttrs = (vals) => (
     Array.isArray(vals) ? vals : vals === undefined ? [] : [vals]
 )
 
-module.exports = { init, destroy, force_new_clientP, search, searchRaw, oneAttr, manyAttrs }
+module.exports = { init, destroy, force_new_clientP, search, searchRaw, add, del, modify, oneAttr, manyAttrs }
