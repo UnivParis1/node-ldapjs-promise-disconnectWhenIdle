@@ -23,6 +23,6 @@
   },
   "homepage": "https://github.com/UnivParis1/node-ldapjs-promise-disconnectWhenIdle#readme",
   "dependencies": {
-    "ldapjs": "^2.2.0"
+    "ldapjs": "^3.0.2"
   }
 }

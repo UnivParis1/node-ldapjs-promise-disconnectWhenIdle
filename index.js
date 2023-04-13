@@ -1,6 +1,35 @@
 const ldapjs = require('ldapjs');
 const util = require('util')
 
+/** @typedef {{ dn: string, [p: string]: string | string[] }} SearchEntryObject */
+/** @typedef {{ dn: string, [p: string]: Buffer | Buffer[] }} SearchEntryRaw */
+
+const attributes_to_dict_values = (attrs) => {
+    let o = {}
+    for (const attr of attrs) {
+        o[attr.type] = attr.values
+    }
+    return o
+}
+const attributes_to_dict_buffers = (attrs) => {
+    let o = {}
+    for (const attr of attrs) {
+        o[attr.type] = attr.buffers
+    }
+    return o
+}
+/** 
+ * @type {(any) => SearchEntryObject} 
+ */
+const to_SearchEntryObject = (searchResult) => (
+    { dn: searchResult.objectName.toString(), ...attributes_to_dict_values(searchResult.attributes) }
+)
+/** 
+ * @type {(any) => SearchEntryRaw} 
+ */
+const to_SearchEntryRaw = (searchResult) => (
+    { dn: searchResult.objectName.toString(), ...attributes_to_dict_buffers(searchResult.attributes) }
+)
 
 let _conf
 /**
@@ -67,7 +96,7 @@ function new_clientP() {
  * @param {ldapjs.SearchOptions} options - search options
  * @returns {Promise<ldapjs.SearchEntry[]>} - entries
  */
-function searchRaw(base, filter, attributes, options) {
+function _searchRaw(base, filter, attributes, options) {
     if (attributes.length === 0) {
         // workaround asking nothing and getting everything. Bug in ldapjs???
         attributes = ['objectClass'];
@@ -113,15 +142,27 @@ function searchRaw(base, filter, attributes, options) {
 }
 
 /**
+ * LDAP search - returning binary values (Buffer) if wanted
+ * @param {string} base - LDAP branch to search
+ * @param {string} filter - search filter
+ * @param {string[]} attributes - attributes to return
+ * @param {ldapjs.SearchOptions} options - search options
+ * @returns {Promise<SearchEntryRaw[]>} - entries
+ */
+const searchRaw = (base, filter, attributes, options) => (
+    _searchRaw(base, filter, attributes, options).then(l => l.map(to_SearchEntryRaw))
+)
+
+/**
  * LDAP search
  * @param {string} base - LDAP branch to search
  * @param {string} filter - search filter
  * @param {string[]} attributes - attributes to return
  * @param {ldapjs.SearchOptions} options - search options
- * @returns {Promise<ldapjs.SearchEntryObject[]>} - entries
+ * @returns {Promise<SearchEntryObject[]>} - entries
  */
 const search = (base, filter, attributes, options) => (
-    searchRaw(base, filter, attributes, options).then(l => l.map(e => e.object))
+    _searchRaw(base, filter, attributes, options).then(l => l.map(to_SearchEntryObject))
 )
 
 async function promisify_method(method) {
