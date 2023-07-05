@@ -82,9 +82,10 @@ function may_bind(_conf, c) {
  * @param {string} filter - search filter
  * @param {string[]} attributes - attributes to return
  * @param {ldapjs.SearchOptions} options - search options
+ * @param {Promise<ldapjs.Client>=} clientP - optional specific ldapjs.Client
  * @returns {Promise<ldapjs.SearchEntry[]>} - entries
  */
-function searchRaw(base, filter, attributes, options) {
+function searchRaw(base, filter, attributes, options, clientP) {
     if (attributes.length === 0) {
         // workaround asking nothing and getting everything. Bug in ldapjs???
         attributes = ['objectClass'];
@@ -101,7 +102,7 @@ function searchRaw(base, filter, attributes, options) {
     let params = { filter, attributes, scope: "sub", ...options };
     return new Promise((resolve, reject) => {
         let l = [];
-        get_clientP().then(c => c.search(base, params, (err, res) => {
+        (clientP || get_clientP()).then(c => c.search(base, params, (err, res) => {
             if (err) return reject(err);
 
             res.on('searchEntry', entry => {
@@ -135,10 +136,11 @@ function searchRaw(base, filter, attributes, options) {
  * @param {string} filter - search filter
  * @param {string[]} attributes - attributes to return
  * @param {ldapjs.SearchOptions} options - search options
+ * @param {Promise<ldapjs.Client>=} clientP - optional specific ldapjs.Client
  * @returns {Promise<ldapjs.SearchEntryObject[]>} - entries
  */
-const search = (base, filter, attributes, options) => (
-    searchRaw(base, filter, attributes, options).then(l => l.map(e => e.object))
+const search = (base, filter, attributes, options, clientP) => (
+    searchRaw(base, filter, attributes, options, clientP).then(l => l.map(e => e.object))
 )
 
 async function promisify_method(method) {
