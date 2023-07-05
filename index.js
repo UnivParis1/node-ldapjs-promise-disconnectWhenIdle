@@ -17,7 +17,7 @@ function init(conf) {
 }
 
 let _client, _clientP;
-function clientP() {
+function get_clientP() {
     if (!_clientP) new_clientP();
     return _clientP;
 }
@@ -84,7 +84,7 @@ function searchRaw(base, filter, attributes, options) {
     let params = { filter, attributes, scope: "sub", ...options };
     return new Promise((resolve, reject) => {
         let l = [];
-        clientP().then(c => c.search(base, params, (err, res) => {
+        get_clientP().then(c => c.search(base, params, (err, res) => {
             if (err) return reject(err);
 
             res.on('searchEntry', entry => {
@@ -125,7 +125,7 @@ const search = (base, filter, attributes, options) => (
 )
 
 async function promisify_method(method) {
-    const c = await clientP()
+    const c = await get_clientP()
     return util.promisify(c[method]).bind(c)
 }
 
