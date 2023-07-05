@@ -16,7 +16,10 @@ function init(conf) {
     _conf = conf
 }
 
-let _client, _clientP;
+/** @type {ldapjs.Client} */
+let _client
+/** @type {Promise<ldapjs.Client>} */
+let _clientP;
 function get_clientP() {
     if (!_clientP) new_clientP();
     return _clientP;
