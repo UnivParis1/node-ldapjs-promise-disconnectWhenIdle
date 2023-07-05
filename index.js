@@ -21,7 +21,8 @@ let _client
 /** @type {Promise<ldapjs.Client>} */
 let _clientP;
 function get_clientP() {
-    if (!_clientP) new_clientP();
+    if (!_conf) throw "node-ldapjs-promise-disconnectWhenIdle: call init() first"
+    if (!_clientP) { _client = new_client(_conf); _clientP = may_bind(_conf, _client); }
     return _clientP;
 }
 
@@ -35,19 +36,32 @@ function destroy() {
 }
 
 function force_new_clientP() {
-    new_clientP()
+    if (!_conf) throw "node-ldapjs-promise-disconnectWhenIdle: call init() first"
+    _client = new_client(_conf); _clientP = may_bind(_conf, _client);
 }
 
-function new_clientP() {
-    if (!_conf) throw "node-ldapjs-promise-disconnectWhenIdle: call init() first"
+/**
+ * Use it to pass a specific ldapjs.Client to function may_bind
+ * @param {Object} _conf - ldap connection parameters
+ * @returns {ldapjs.Client}
+ */
+function new_client(_conf) {
     if (_conf.verbose) console.info("connecting to " + _conf.uri);
     const c = ldapjs.createClient({ url: _conf.uri, reconnect: true, idleTimeout: _conf.disconnectWhenIdle_duration });
     c.on('connectError', console.error);
     c.on('error', console.error);
     c.on('idle', destroy);
+    return c
+}
 
-    _client = c;
-    _clientP = new Promise((resolve, reject) => {
+/**
+ * Use it to pass a specific ldapjs.Client to function searchRaw
+ * @param {Object} _conf - ldap connection parameters
+ * @returns {ldapjs.Client} c - ldapjs.Client
+ * @returns {Promise<ldapjs.Client>}
+ */
+function may_bind(_conf, c) {
+    return new Promise((resolve, reject) => {
         c.on('connect', () => {
             if (_conf.verbose) console.log("connected to ldap server");
             if (_conf.dn) {
@@ -59,7 +73,7 @@ function new_clientP() {
                 resolve(c);
             }
         });
-    });
+    })
 }
 
 /**
@@ -178,4 +192,4 @@ const manyAttrs = (vals) => (
     Array.isArray(vals) ? vals : vals === undefined ? [] : [vals]
 )
 
-module.exports = { init, destroy, force_new_clientP, search, searchRaw, add, del, modify, oneAttr, manyAttrs }
+module.exports = { init, destroy, new_client, may_bind, force_new_clientP, search, searchRaw, add, del, modify, oneAttr, manyAttrs }
